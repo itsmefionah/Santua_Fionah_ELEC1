@@ -29,7 +29,7 @@ class CalcuController extends Controller
         }
 
         //yung function returns yung buong output as string, na kinabibilangan ng mga na-format na values and result
-        return "<h3>Fionah Santua 3D</h3>"
+        return "<h3>Fionah Santua 3A</h3>"
                 ."Value 1: <span style='color: " . ($value1 % 2 == 0 ? "orange" : "blue") . ";'>$value1</span><br>"
                 . "Value 2: <span style='color: " . ($value2 % 2 == 0 ? "orange" : "blue") . ";'>$value2</span><br>"
                 . "Operator: <span>$operation</span>" //ipapakita lang neto kung anong operator ang ginamit para sa calculation
