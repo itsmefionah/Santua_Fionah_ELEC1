@@ -33,6 +33,4 @@
             <input type="text" readonly value="{{$qty}}">
         </div>
     </div>
-
-
 @endsection

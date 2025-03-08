@@ -11,10 +11,10 @@
 <body>
     <div style="display:flex; flex-direction: column; align-items:center; justify-content:center;  height:70vh;">
         <nav>
-                    <a style="padding-right: 20px;" href="/customer">Customer</a></li>
-                    <a style="padding-right: 20px;" href="/item">Item</a></li>
-                    <a style="padding-right: 20px;" href="/order">Order</a></li>
-                    <a href="/orderdetails">Order Details</a></li>
+            <a style="padding-right: 20px;" href="/customer">Customer</a></li>
+            <a style="padding-right: 20px;" href="/item">Item</a></li>
+            <a style="padding-right: 20px;" href="/order">Order</a></li>
+            <a href="/orderdetails">Order Details</a></li>
         </nav>
         <br>
     @yield('content')
