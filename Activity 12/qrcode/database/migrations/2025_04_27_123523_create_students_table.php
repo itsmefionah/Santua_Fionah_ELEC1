@@ -10,19 +10,19 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::create('students', function (Blueprint $table) {
-        $table->id(); // Primary key
-        $table->string('student_id')->unique(); 
-        $table->string('full_name');
-        $table->date('birthdate');
-        $table->integer('age');
-        $table->string('email')->unique();
-        $table->string('phone_number')->nullable();
-        $table->text('address')->nullable();
-        $table->timestamps(); 
-    });
-}
+    {
+        Schema::create('students', function (Blueprint $table) {
+            $table->id(); // Primary key
+            $table->string('student_id')->unique(); 
+            $table->string('full_name');
+            $table->date('birthdate');
+            $table->integer('age');
+            $table->string('email')->unique();
+            $table->string('phone_number')->nullable();
+            $table->text('address')->nullable();
+            $table->timestamps(); 
+        });
+    }
 
 
     /**
