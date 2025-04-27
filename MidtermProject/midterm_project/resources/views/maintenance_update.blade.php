@@ -5,7 +5,7 @@
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold text-success">Update Maintenance Record</h2>
+    <h2 class="fw-bold" style="color: #013D83;">Update Maintenance Record</h2>
     <a href="{{ route('mindex', ['id' => $asset->id]) }}" class="btn btn-outline-secondary shadow-sm">Back to Maintenance List</a>
 </div>
 
@@ -14,7 +14,7 @@
     @method('POST')
 
     <div class="mb-4">
-        <label class="form-label fw-semibold text-success">Maintenance Date</label>
+        <label class="form-label fw-semibold">Maintenance Date</label>
         <input type="date" name="maintenance_date" class="form-control" value="{{ old('maintenance_date', $record->maintenance_date) }}">
         @error('maintenance_date')
             <div class="text-danger mt-1">{{ $message }}</div>
@@ -22,7 +22,7 @@
     </div>
 
     <div class="mb-4">
-        <label class="form-label fw-semibold text-success">Maintenance Notes</label>
+        <label class="form-label fw-semibold">Notes</label>
         <textarea name="notes" class="form-control" placeholder="Enter maintenance notes" rows="4">{{ old('notes', $record->notes) }}</textarea>
         @error('notes')
             <div class="text-danger mt-1">{{ $message }}</div>
@@ -30,7 +30,7 @@
     </div>
 
     <div class="d-flex justify-content-end">
-        <button type="submit" class="btn btn-success px-4">Update</button>
+        <button type="submit"  class="btn" style="background: #0C53A5; color: white; font-weight: 600;">Update</button>
     </div>
 </form>
 

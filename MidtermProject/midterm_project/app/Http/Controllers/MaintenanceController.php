@@ -86,4 +86,16 @@ class MaintenanceController extends Controller
 
         return redirect()->route('mindex', ['id' => $asset_id])->with('Success', 'Maintenance record deleted successfully!');
     }
+
+    public function showMaintenanceHistory($id){
+        $asset = DB::select('select * from assets where id = ?', [$id]);
+        $asset = $asset[0] ?? null;
+
+        $records = DB::select('select * from maintenance_records where asset_id = ? order by maintenance_date desc', [$id]);
+
+        return view('maintenance_history', [
+            'asset' => $asset,
+            'records' => $records
+        ]);
+    }
 }

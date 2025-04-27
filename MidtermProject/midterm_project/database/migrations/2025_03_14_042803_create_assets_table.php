@@ -16,7 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->foreignId('location_id')->constrained()->onDelete('cascade');
-            $table->enum('status', ['in_use','under_maintenance'])->default('in_use');
+            $table->string('in_charge');
+            $table->enum('status', ['in_use','under_maintenance', 'broken'])->default('in_use');
             $table->timestamps();
         });
     }

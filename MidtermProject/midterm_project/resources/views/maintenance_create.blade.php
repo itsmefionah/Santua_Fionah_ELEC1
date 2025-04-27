@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold text-success">Add Maintenance for {{ $asset->name }}</h2>
+    <h2 class="fw-bold" style="color: #013D83;">Add Maintenance for {{ $asset->name }}</h2>
     <a href="{{ route('mindex', $asset->id) }}" class="btn btn-outline-secondary shadow-sm">Back to Records</a>
 </div>
 
@@ -13,7 +13,7 @@
 
     <div class="mb-4">
         <label class="form-label fw-semibold">Maintenance Date</label>
-        <input type="date" name="maintenance_date" class="form-control border-success">
+        <input type="date" name="maintenance_date" class="form-control">
         @error('maintenance_date')
             <div class="text-danger mt-1">{{ $message }}</div>
         @enderror
@@ -21,13 +21,13 @@
 
     <div class="mb-4">
         <label class="form-label fw-semibold">Notes</label>
-        <textarea name="notes" class="form-control border-success" placeholder="Enter maintenance details..."></textarea>
+        <textarea name="notes" class="form-control" placeholder="Enter maintenance details..."></textarea>
         @error('notes')
             <div class="text-danger mt-1">{{ $message }}</div>
         @enderror
     </div>
 
-    <button type="submit" class="btn btn-success shadow-sm">Add Record</button>
+    <button type="submit" class="btn" style="background: #0C53A5; color: white; font-weight: 600;">Add Record</button>
 </form>
 
 @endsection

@@ -12,10 +12,13 @@ Route::get('/', function () {
 
 //assets 
 Route::get('/assets', [AssetController::class, 'index'])->name('home');
+Route::get('/assets/details/{location_id}', [AssetController::class, 'details'])->name('details');
+Route::get('/assets/assigned/{name}', [AssetController::class, 'assignedAssets'])->name('assigned');
+Route::get('/assets/assignedToPerson/{name}', [AssetController::class, 'assignedToPerson'])->name('assignedToPerson');
 Route::get('/assets/create', [AssetController::class, 'insertForm'])->name('create');
 Route::post('/assets', [AssetController::class, 'insert'])->name('store');
 Route::get('/assets/{id}/edit', [AssetController::class, 'showEdit'])->name('edit');
-Route::post('/assets/{id}', [AssetController::class, 'edit'])->name('update');
+Route::post('/assets/update/{id}', [AssetController::class, 'edit'])->name('update');
 Route::get('/assets/{id}', [AssetController::class, 'delete'])->name('destroy');
 
 //maintenance
@@ -25,3 +28,4 @@ Route::post('/assets/{id}/maintenance', [MaintenanceController::class, 'insertAs
 Route::get('/maintenance/{id}/edit/{record_id}', [MaintenanceController::class, 'editMaintenance'])->name('medit');
 Route::post('/maintenance/{id}/update/{record_id}', [MaintenanceController::class, 'updateMaintenance'])->name('mupdate');
 Route::get('/maintenance/{id}/delete/{record_id}', [MaintenanceController::class, 'deleteMaintenance'])->name('mdelete');
+Route::get('/assets/{id}/maintenanceHistory',[MaintenanceController::class,'showMaintenanceHistory'])->name('mhistory');

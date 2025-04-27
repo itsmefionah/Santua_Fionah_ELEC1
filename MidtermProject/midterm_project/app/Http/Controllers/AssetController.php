@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 
 class AssetController extends Controller
@@ -13,29 +14,120 @@ class AssetController extends Controller
             ->join('locations as l', 'a.location_id', '=', 'l.id')
             ->leftJoin('maintenance_records as m', 'a.id', '=', 'm.asset_id')
             ->select(
-                'a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id',
+                'a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge',
                 'l.name as location_name',
                 DB::raw('count(m.id) as maintenance_count')
             )
-            ->groupBy('a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'l.name');
-        
-        //SEARCH 
+            ->groupBy('a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge', 'l.name');
+
+        // SEARCH
         if ($request->has('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('a.name', 'LIKE', "%{$search}%")
-                ->orWhere('a.description', 'LIKE', "%{$search}%")
-                ->orWhere('l.name', 'LIKE', "%{$search}%")
-                ->orWhere('a.status', 'LIKE', "%{$search}%");
+                    ->orWhere('a.description', 'LIKE', "%{$search}%")
+                    ->orWhere('l.name', 'LIKE', "%{$search}%")
+                    ->orWhere('a.status', 'LIKE', "%{$search}%")
+                    ->orWhere('a.in_charge', 'LIKE', "%{$search}%");
             });
         }
 
-        //PAGINATION
         $assets = $query->paginate(5);
 
-        return view('assets_view', ['assets' => $assets]);
+        $groupedAssets = DB::table('assets as a')
+    ->join('locations as l', 'a.location_id', '=', 'l.id')
+    ->select(
+        'a.location_id',
+        'l.name as location_name',
+        DB::raw('COUNT(a.id) as asset_count'),
+        DB::raw('MAX(a.created_at) as latest_asset_created') 
+    )
+    ->groupBy('a.location_id', 'l.name')
+    ->get();
+
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = 5;
+        $offset = ($currentPage - 1) * $perPage;
+        $paginatedGroupedAssets = new LengthAwarePaginator(
+            $groupedAssets->slice($offset, $perPage)->values(),
+            $groupedAssets->count(),
+            $perPage,
+            $currentPage,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        return view('assets_view', [
+            'assets'=> $assets,
+            'assetsByLocation'=> $paginatedGroupedAssets
+        ]);
     }
 
+    public function details($location_id)
+    {
+        $location = DB::table('locations')->where('id', $location_id)->first();
+    
+        $assets = DB::table('assets as a')
+            ->join('locations as l', 'a.location_id', '=', 'l.id')
+            ->select(
+                DB::raw('MIN(a.id) as id'),
+                'a.name',
+                'a.in_charge',
+                DB::raw('COUNT(a.id) as asset_count'),
+                DB::raw('MIN(a.created_at) as created_at'),
+                DB::raw('MIN(a.description) as description'),
+                DB::raw('MIN(a.status) as status'),
+                'l.name as location_name'
+            )
+            ->where('a.location_id', $location_id)
+            ->groupBy('a.name', 'a.in_charge', 'l.name')
+            ->get();
+    
+        return view('assets_details', [
+            'assets' => $assets,
+            'locationName' => $location->name ?? 'Unknown Location',
+        ]);
+    }
+    
+    public function assignedAssets(Request $request){
+        $query = DB::table('assets as a')
+            ->join('locations as l', 'a.location_id', '=', 'l.id')
+            ->leftJoin('maintenance_records as m', 'a.id', '=', 'm.asset_id')
+            ->select(
+                'a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge',
+                'l.name as location_name',
+                DB::raw('count(m.id) as maintenance_count')
+            )
+            ->groupBy('a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge', 'l.name');
+    
+        $assets = $query->get();
+    
+        return view('assets_assigned', [
+            'assets' => $assets,
+            'in_charge' => $request->input('in_charge') 
+        ]);
+    }
+    
+
+    public function assignedToPerson($name)
+    {
+        $assets = DB::table('assets as a')
+            ->join('locations as l', 'a.location_id', '=', 'l.id')
+            ->leftJoin('maintenance_records as m', 'a.id', '=', 'm.asset_id')
+            ->select(
+                'a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge',
+                'l.name as location_name',
+                DB::raw('count(m.id) as maintenance_count')
+            )
+            ->where('a.in_charge', $name)
+            ->groupBy('a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge', 'l.name')
+            ->get();
+    
+        return view('assets_assigned', [
+            'assets' => $assets,
+            'person' => $name, 
+        ]);
+    }
+    
 
     public function insertForm()
     {
@@ -49,18 +141,10 @@ class AssetController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'location_name' => 'required|string|max:255',
-            'status' => 'required|string|in:in_use,under_maintenance'
-        ], [
-            'name.required' => 'Asset name is required.',
-            'name.max' => 'Asset name must not exceed 255 characters.',
-            'description.required' => 'Asset description is required.',
-            'location_name.required' => 'Asset location is required.',
-            'location_name.max' => 'Location name must not exceed 255 characters.',
-            'status.required' => 'Status is required.',
-            'status.in' => 'Invalid status selected.',
+            'in_charge' => 'required|string|max:255',
+            'status' => 'required|string|in:in_use,under_maintenance,broken'
         ]);
 
-        
         $location = DB::select('select id from locations where name = ?', [$validated['location_name']]);
         if (empty($location)) {
             DB::insert('insert into locations (name, created_at, updated_at) values (?, NOW(), NOW())', [
@@ -71,20 +155,19 @@ class AssetController extends Controller
             $location_id = $location[0]->id;
         }
 
-    
-        DB::insert('insert into assets (name, description, location_id, status, created_at, updated_at) 
-            values (?, ?, ?, ?, NOW(), NOW())', 
+        DB::insert('insert into assets (name, description, location_id, status, in_charge, created_at, updated_at) 
+            values (?, ?, ?, ?, ?, NOW(), NOW())', 
             [
                 $validated['name'],
                 $validated['description'],
                 $location_id,
-                $validated['status']
+                $validated['status'],
+                $validated['in_charge']
             ]
         );
 
         return redirect()->route('home')->with('Success', 'Asset added successfully!');
     }
-
 
     public function showEdit($id)
     {
@@ -93,7 +176,7 @@ class AssetController extends Controller
             from assets a
             join locations l ON a.location_id = l.id
             where a.id = ?', [$id]);
-            $asset = $asset[0] ?? null;
+        $asset = $asset[0] ?? null;
 
         $locations = DB::select('select * from locations');
 
@@ -105,24 +188,17 @@ class AssetController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'location_name' => 'required|string|max:255',
-            'status' => 'required|string|in:in_use,under_maintenance'
-        ], [
-            'name.required' => 'Asset name is required.',
-            'name.max' => 'Asset name must not exceed 255 characters.',
-            'description.required' => 'Asset description is required.',
-            'location_name.required' => 'Asset location is required.',
-            'location_name.max' => 'Location name must not exceed 255 characters.',
-            'status.required' => 'Status is required.',
-            'status.in' => 'Invalid status selected.',
+            'in_charge' => 'required|string|max:255',
+            'status' => 'required|string|in:in_use,under_maintenance,broken'
         ]);
 
-        $asset=DB::select('select * from assets where id = ?', [$id]);
+        $asset = DB::select('select * from assets where id = ?', [$id]);
         $asset = $asset[0];
         $prevLocation = $asset->location_id;
-    
+
         $location = DB::select('select * from locations where name = ?', [$validated['location_name']]);
         $location = $location[0] ?? null;
-    
+
         if (!$location) {
             DB::insert('insert into locations (name, created_at, updated_at) values (?, NOW(), NOW())', [
                 $validated['location_name']
@@ -131,23 +207,24 @@ class AssetController extends Controller
         } else {
             $location_id = $location->id;
         }
-    
-        DB::update('update assets set name = ?, description = ?, location_id = ?, status = ?, updated_at = NOW() where id = ?', [
+
+        DB::update('update assets set name = ?, description = ?, location_id = ?, status = ?, in_charge = ?, updated_at = NOW() where id = ?', [
             $validated['name'],
             $validated['description'],
             $location_id,
             $validated['status'],
+            $validated['in_charge'],
             $id
         ]);
 
-        $otherAsset=DB::select('select count(*) as count from assets where location_id = ?', [$prevLocation]);
-        if($otherAsset[0]->count==0){
+        $otherAsset = DB::select('select count(*) as count from assets where location_id = ?', [$prevLocation]);
+        if ($otherAsset[0]->count == 0) {
             DB::delete('delete from locations where id = ?', [$prevLocation]);
         }
-    
-        return redirect()->route('home')->with('Success', 'Asset updated successfully!');
+
+        return redirect()->route('assignedToPerson', ['name' => $validated['in_charge']])
+        ->with('Success', 'Asset updated successfully!');
     }
-    
 
     public function delete($id)
     {
@@ -165,6 +242,7 @@ class AssetController extends Controller
         if ($otherAssets->count == 0) {
             DB::delete('delete from locations where id = ?', [$location_id]);
         }
+
         DB::delete('delete from maintenance_records where asset_id = ?', [$id]);
         DB::delete('delete from assets where id = ?', [$id]);
 
