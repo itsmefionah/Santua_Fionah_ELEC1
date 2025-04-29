@@ -8,8 +8,39 @@ use Illuminate\Http\Request;
 
 class AssetController extends Controller
 {
+    public function search(Request $request)
+    {
+        $search = $request->input('search');
+
+        $assets = DB::table('assets as a')
+            ->join('locations as l', 'a.location_id', '=', 'l.id')
+            ->leftJoin('maintenance_records as m', 'a.id', '=', 'm.asset_id')
+            ->select(
+                'a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge',
+                'l.name as location_name',
+                DB::raw('count(m.id) as maintenance_count')
+            )
+            ->groupBy('a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge', 'l.name')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('a.name', 'like', "%$search%")
+                    ->orWhere('a.description', 'like', "%$search%")
+                    ->orWhere('a.in_charge', 'like', "%$search%")
+                    ->orWhere('l.name', 'like', "%$search%")
+                    ->orWhere('a.status', 'like', "%$search%");
+                });
+            })
+            ->get();
+
+        return view('assets_search', [
+            'assets' => $assets,
+            'search' => $search,
+        ]);
+    }
+
     public function index(Request $request)
     {
+        
         $query = DB::table('assets as a')
             ->join('locations as l', 'a.location_id', '=', 'l.id')
             ->leftJoin('maintenance_records as m', 'a.id', '=', 'm.asset_id')
@@ -20,30 +51,18 @@ class AssetController extends Controller
             )
             ->groupBy('a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge', 'l.name');
 
-        // SEARCH
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('a.name', 'LIKE', "%{$search}%")
-                    ->orWhere('a.description', 'LIKE', "%{$search}%")
-                    ->orWhere('l.name', 'LIKE', "%{$search}%")
-                    ->orWhere('a.status', 'LIKE', "%{$search}%")
-                    ->orWhere('a.in_charge', 'LIKE', "%{$search}%");
-            });
-        }
-
         $assets = $query->paginate(5);
 
         $groupedAssets = DB::table('assets as a')
-    ->join('locations as l', 'a.location_id', '=', 'l.id')
-    ->select(
-        'a.location_id',
-        'l.name as location_name',
-        DB::raw('COUNT(a.id) as asset_count'),
-        DB::raw('MAX(a.created_at) as latest_asset_created') 
-    )
-    ->groupBy('a.location_id', 'l.name')
-    ->get();
+        ->join('locations as l', 'a.location_id', '=', 'l.id')
+        ->select(
+            'a.location_id',
+            'l.name as location_name',
+            DB::raw('COUNT(a.id) as asset_count'),
+            DB::raw('MAX(a.created_at) as latest_asset_created') 
+        )
+        ->groupBy('a.location_id', 'l.name')
+        ->get();
 
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
         $perPage = 5;

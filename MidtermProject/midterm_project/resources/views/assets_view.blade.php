@@ -5,9 +5,13 @@
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold" style="color: #013D83;">Welcome,Admin!</h2>
-    <a href="{{ route('create') }}" class="btn shadow-sm" style="background: #0C53A5; color: white; font-weight: 600;">Add New Asset</a>
+    <h2 class="fw-bold" style="color: #013D83;">Welcome, Admin!</h2>
+    <div>
+        <a href="{{ route('create') }}" class="btn shadow-sm me-2" style="background: #0C53A5; color: white; font-weight: 600;">Add New Asset</a>
+        <a href="{{ route('search') }}" class="btn shadow-sm" style="background: #0C53A5; color: white; font-weight: 600;">Search</a>
+    </div>
 </div>
+
 
 <!-- @if (session('Success'))
     <div class="alert alert-primary text-center" role="alert">
@@ -15,17 +19,18 @@
     </div>
 @endif -->
 
-<form method="GET" action="{{ route('home') }}" class="mb-4">
+<!-- <form method="GET" action="{{ route('home', ) }}" class="mb-4">
     <div class="input-group shadow-sm">
         <input type="text" name="search" class="form-control" placeholder="🔍 Search assets..." value="{{ request('search') }}">
         <button type="submit" class="btn btn-primary" style="color: white; font-weight: 600;">Search</button>
     </div>
-</form>
+</form> -->
+
 
 <div class="container">
     <div class="row">
         <div class="card shadow-sm p-4" style="width: 40%; height: 40%">
-            <!-- Chart for assets status -->
+            <!-- chart for assets status -->
             <canvas id="myChart" style="width:100%;max-width:700px"></canvas>
         </div>
         <div class="table-responsive rounded shadow-sm" style="width: 57.5%; margin-left: 30px;">

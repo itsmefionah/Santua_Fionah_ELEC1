@@ -11,6 +11,7 @@ Route::get('/', function () {
 
 
 //assets 
+Route::get('/search', [AssetController::class, 'search'])->name('search');
 Route::get('/assets', [AssetController::class, 'index'])->name('home');
 Route::get('/assets/details/{location_id}', [AssetController::class, 'details'])->name('details');
 Route::get('/assets/assigned/{name}', [AssetController::class, 'assignedAssets'])->name('assigned');
