@@ -20,7 +20,7 @@
     <nav class="navbar navbar-dark navbar-expand-lg" 
         style="background: linear-gradient(to right, #13459E, #287ECF);">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ route('home') }}">Asset Tracking System</a>
+            <a class="navbar-brand fw-bold" href="{{ route('home') }}">Asset Me In</a>
         </div>
     </nav>
 

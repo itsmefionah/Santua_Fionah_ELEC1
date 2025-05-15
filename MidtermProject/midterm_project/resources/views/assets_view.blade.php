@@ -1,6 +1,6 @@
 @extends('layouts.master_assets')
 
-@section('title', 'Asset List')
+@section('title', 'Asset Dashboard')
 
 @section('content')
 

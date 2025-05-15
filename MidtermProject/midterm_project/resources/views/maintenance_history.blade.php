@@ -1,6 +1,6 @@
 @extends('layouts.master_maintenance')
 
-@section('title', 'Maintenance Records for ' . $asset->name)
+@section('title', 'Maintenance Records')
 
 @section('content')
 

@@ -1,6 +1,6 @@
 @extends('layouts.master_assets')
 
-@section('title', 'Asset List')
+@section('title', 'Assigned Asset')
 
 @section('content')
 
@@ -24,7 +24,7 @@
             <tr>
                 <td>{{ \Carbon\Carbon::parse($asset->created_at)->format('F j, Y') }}</td>
                 <td class="fw-semibold">{{ $asset->name }}</td>
-                <td>{{ $asset->description }}</td>
+                <td >{{ $asset->description }}</td>
                 <td>{{ $asset->location_name }}</td>
                 <td>{{ $asset->in_charge }}</td>
                 <td>

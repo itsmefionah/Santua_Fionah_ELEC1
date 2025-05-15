@@ -1,5 +1,7 @@
 @extends('layouts.master_assets')
 
+@section('title', 'Search Asset')
+
 @section('content')
     <form action="{{ route('search') }}" method="GET" class="mb-3">
         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search assets..." class="form-control" />
