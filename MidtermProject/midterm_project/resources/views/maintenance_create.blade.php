@@ -20,9 +20,28 @@
     </div>
 
     <div class="mb-4">
+        <label class="form-label fw-semibold">Maintenance Staff</label>
+        <input name="staff" class="form-control" placeholder="Enter maintenance staff"></>
+        @error('staff')
+            <div class="text-danger mt-1">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="mb-4">
         <label class="form-label fw-semibold">Notes</label>
         <textarea name="notes" class="form-control" placeholder="Enter maintenance details..."></textarea>
         @error('notes')
+            <div class="text-danger mt-1">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="mb-4">
+        <label class="form-label fw-semibold">Status</label>
+        <select name="status" class="form-control">
+            <option value="serviceable" {{ old('status') == 'Serviceable' ? 'selected' : '' }}>Serviceable</option>
+            <option value="unserviceable" {{ old('status') == 'Unserviceable' ? 'selected' : '' }}>Unserviceable</option>
+        </select>
+        @error('status')
             <div class="text-danger mt-1">{{ $message }}</div>
         @enderror
     </div>

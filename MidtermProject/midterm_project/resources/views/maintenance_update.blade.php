@@ -22,12 +22,32 @@
     </div>
 
     <div class="mb-4">
+        <label class="form-label fw-semibold">Maintenace Staff</label>
+        <textarea name="staff" class="form-control" placeholder="Enter maintenance notes" rows="4">{{ old('staff', $record->staff) }}</textarea>
+        @error('notes')
+            <div class="text-danger mt-1">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="mb-4">
         <label class="form-label fw-semibold">Notes</label>
         <textarea name="notes" class="form-control" placeholder="Enter maintenance notes" rows="4">{{ old('notes', $record->notes) }}</textarea>
         @error('notes')
             <div class="text-danger mt-1">{{ $message }}</div>
         @enderror
     </div>
+
+     <div class="mb-4">
+        <label class="form-label fw-semibold">Status</label>
+        <select name="status" class="form-control" {{ old('status', $record->status) }}>
+            <option value="serviceable" {{ old('status') == 'serviceable' ? 'selected' : '' }}>Serviceable</option>
+            <option value="unserviceable" {{ old('status') == 'unserviceable' ? 'selected' : '' }}>Unserviceable</option>
+        </select>
+        @error('status')
+            <div class="text-danger mt-1">{{ $message }}</div>
+        @enderror
+    </div>
+    
 
     <div class="d-flex justify-content-end">
         <button type="submit"  class="btn" style="background: #0C53A5; color: white; font-weight: 600;">Update</button>

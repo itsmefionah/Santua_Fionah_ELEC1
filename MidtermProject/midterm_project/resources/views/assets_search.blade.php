@@ -15,23 +15,26 @@
         <table class="table table-bordered">
             <thead>
                 <tr>
+                    <th>Unique ID</th> 
                     <th>Name</th>
                     <th>Description</th>
                     <th>Location</th>
                     <th>In Charge</th>
                     <th>Status</th>
-                    <th>Maintenance Count</th>
+                    <th class=" d-flex justify-content-center">Maintenance Count</th>
                 </tr>
             </thead>
             <tbody>
+                @php $counter =  $uniqueID; @endphp
                 @foreach ($assets as $asset)
                     <tr>
+                        <td>{{ $counter++ }}</td>
                         <td>{{ $asset->name }}</td>
                         <td>{{ $asset->description }}</td>
                         <td>{{ $asset->location_name }}</td>
                         <td>{{ $asset->in_charge }}</td>
                         <td>{{ $asset->status }}</td>
-                        <td>{{ $asset->maintenance_count }}</td>
+                        <td class=" d-flex justify-content-center"> <a href="{{ route('mhistory', ['id' => $asset->id]) }}" class="btn btn-sm btn-outline-primary">Maintenance History</a></td>
                     </tr>
                 @endforeach
             </tbody>

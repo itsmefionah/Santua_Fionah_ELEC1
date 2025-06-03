@@ -19,22 +19,33 @@
         <table class="table align-middle">
             <thead>
                 <tr>
+                    <th style="background-color: #DBEAFE; color: #013D83;" class="fw-bold">Staff</th>
                     @if ($showCreatedAt ?? true)
                         <th style="background-color: #DBEAFE; color: #013D83;" class="fw-bold">Created At</th>
                     @endif
+                    <th style="background-color: #DBEAFE; color: #013D83;" class="fw-bold">Time</th>
+                    <th style="background-color: #DBEAFE; color: #013D83;" class="fw-bold">Maintenance Staff</th>
                     <th style="background-color: #DBEAFE; color: #013D83;" class="fw-bold">Notes</th>
                     <th style="background-color: #DBEAFE; color: #013D83;" class="fw-bold">Maintenance Date</th>
+                    <th style="background-color: #DBEAFE; color: #013D83;" class="fw-bold">Status</th>
                      </tr>
             </thead>
             <tbody>
                 @foreach ($records as $record)
                     <tr>
+                         <td>{{ $record->created_by_name }}</td>
                         @if ($showCreatedAt ?? true)
                             <td>{{ \Carbon\Carbon::parse($record->created_at)->format('F j, Y') }}</td>
                         @endif
-                        <td>{{ $record->notes ?? 'N/A' }}</td>
+                        <td>{{ \Carbon\Carbon::parse($record->created_at)->format('g:i A') }}</td>
+                        <td>{{ $record->staff}}</td>
+                        <td>{{ $record->notes}}</td>
                         <td>{{ \Carbon\Carbon::parse($record->maintenance_date)->format('F j, Y') }}</td>
-                       
+                        <td>
+                            <span class="badge {{ $record->status === 'serviceable' ? 'bg-success' : 'bg-danger' }}">
+                                {{ ucfirst($record->status) }}
+                            </span>
+                        </td> 
                     </tr>
                 @endforeach
             </tbody>

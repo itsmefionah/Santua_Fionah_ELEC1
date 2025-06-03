@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('asset_id')->constrained()->onDelete('cascade');
             $table->date('maintenance_date');
+            $table->string('staff');
             $table->text('notes')->nullable();
+            $table->enum('status', ['serviceable','unserviceable'])->default('serviceable');
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

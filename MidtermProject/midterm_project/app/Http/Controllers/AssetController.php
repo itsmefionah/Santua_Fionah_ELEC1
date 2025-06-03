@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 
+use function Pest\Laravel\get;
+
 class AssetController extends Controller
 {
     public function search(Request $request)
@@ -18,7 +20,8 @@ class AssetController extends Controller
             ->select(
                 'a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge',
                 'l.name as location_name',
-                DB::raw('count(m.id) as maintenance_count')
+                DB::raw('count(m.id) as maintenance_count'),
+                DB::raw('UUID() as unique_id')  // <-- add this
             )
             ->groupBy('a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge', 'l.name')
             ->when($search, function ($query, $search) {
@@ -31,44 +34,51 @@ class AssetController extends Controller
                 });
             })
             ->get();
-
+        
+        $uniqueID = 101;
         return view('assets_search', [
             'assets' => $assets,
             'search' => $search,
+            'uniqueID'=>$uniqueID,
         ]);
     }
 
+
     public function index(Request $request)
     {
-        
-        $query = DB::table('assets as a')
-            ->join('locations as l', 'a.location_id', '=', 'l.id')
-            ->leftJoin('maintenance_records as m', 'a.id', '=', 'm.asset_id')
-            ->select(
-                'a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge',
-                'l.name as location_name',
-                DB::raw('count(m.id) as maintenance_count')
-            )
-            ->groupBy('a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge', 'l.name');
+       $query = DB::table('assets as a')
+        ->join('locations as l', 'a.location_id', '=', 'l.id')
+        ->leftJoin('users as u', 'a.created_by', '=', 'u.id') 
+        ->leftJoin('maintenance_records as m', 'a.id', '=', 'm.asset_id')
+        ->select(
+            'a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge',
+            'l.name as location_name',
+            'u.name as creator_name',  
+            DB::raw('count(m.id) as maintenance_count')
+        )
+        ->groupBy('a.id', 'a.created_at', 'a.name', 'a.description', 'a.status', 'a.location_id', 'a.in_charge', 'l.name', 'u.name');
+
 
         $assets = $query->paginate(5);
 
         $groupedAssets = DB::table('assets as a')
         ->join('locations as l', 'a.location_id', '=', 'l.id')
+        ->leftJoin('users as u', 'a.created_by', '=', 'u.id') 
         ->select(
             'a.location_id',
             'l.name as location_name',
             DB::raw('COUNT(a.id) as asset_count'),
-            DB::raw('MAX(a.created_at) as latest_asset_created') 
+            DB::raw('MAX(a.created_at) as latest_asset_created'),
+            'u.name as creator_name'  
         )
-        ->groupBy('a.location_id', 'l.name')
-        ->get();
+        ->groupBy('a.location_id', 'l.name', 'u.name')->get();
+
 
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
         $perPage = 5;
         $offset = ($currentPage - 1) * $perPage;
         $paginatedGroupedAssets = new LengthAwarePaginator(
-            $groupedAssets->slice($offset, $perPage)->values(),
+            collect($groupedAssets)->slice($offset, $perPage)->values(),
             $groupedAssets->count(),
             $perPage,
             $currentPage,
@@ -76,8 +86,8 @@ class AssetController extends Controller
         );
 
         return view('assets_view', [
-            'assets'=> $assets,
-            'assetsByLocation'=> $paginatedGroupedAssets
+            'assets' => $assets,
+            'assetsByLocation' => $paginatedGroupedAssets,
         ]);
     }
 
@@ -164,29 +174,32 @@ class AssetController extends Controller
             'status' => 'required|string|in:in_use,under_maintenance,broken'
         ]);
 
-        $location = DB::select('select id from locations where name = ?', [$validated['location_name']]);
-        if (empty($location)) {
-            DB::insert('insert into locations (name, created_at, updated_at) values (?, NOW(), NOW())', [
-                $validated['location_name']
+        $location = DB::table('locations')->where('name', $validated['location_name'])->first();
+        if (!$location) {
+            DB::table('locations')->insert([
+                'name' => $validated['location_name'],
+                'created_at' => now(),
+                'updated_at' => now()
             ]);
             $location_id = DB::getPdo()->lastInsertId();
         } else {
-            $location_id = $location[0]->id;
+            $location_id = $location->id;
         }
 
-        DB::insert('insert into assets (name, description, location_id, status, in_charge, created_at, updated_at) 
-            values (?, ?, ?, ?, ?, NOW(), NOW())', 
-            [
-                $validated['name'],
-                $validated['description'],
-                $location_id,
-                $validated['status'],
-                $validated['in_charge']
-            ]
-        );
+        DB::table('assets')->insert([
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'location_id' => $location_id,
+            'status' => $validated['status'],
+            'in_charge' => $validated['in_charge'],
+            'created_by' => auth()->id(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         return redirect()->route('home')->with('Success', 'Asset added successfully!');
     }
+
 
     public function showEdit($id)
     {
